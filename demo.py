@@ -75,8 +75,10 @@ if __name__ == '__main__':
 
     print('Finish Training')
 
+    # TODO: Save weights and load weights
+
     # save the model's parameter
-    torch.save(net.)
+    torch.save(net.state_dict(), './weights/LeNet5_CIFAR10_Params.pkl')
 
     # test the model
     correct = 0
@@ -91,7 +93,7 @@ if __name__ == '__main__':
         # total += labels.size(0)
         # correct += (predicted == labels).sum()
 
-    print("Accuracy of the network on the 10000 test images: %d %%" % (100 * correct / total))
+    # print("Accuracy of the network on the 10000 test images: %d %%" % (100 * correct / total))
 
 
 
