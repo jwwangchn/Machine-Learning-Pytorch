@@ -7,21 +7,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import torch.optim as optim
-from lenet import build_lenet5_v1, build_lenet5_v2
-import argparse
+from lenet import *
 
-parser = argparse.ArgumentParser(description='PyTorch Example')
-parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
-args = parser.parse_args()
-args.cuda = not args.disable_cuda and torch.cuda.is_available()
 
-if args.cuda:
-    print("Cuda is available!")
-else:
-    print("Cuda is not available!")
-
-BATCH_SIZE = 8
-LEARN_RATE = 0.01
+BATCH_SIZE = 4
+LEARN_RATE = 0.001
 MOMENTUM = 0.9
 
 # Define transform
@@ -38,10 +28,31 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=BATCH_SIZE, shuffle
 # Set classes name
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
+
 # Define the convolution neural network
-net = build_lenet5_v1()
-if args.cuda:
-    net.cuda()
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=6, kernel_size=5, stride=1,
+                               padding=0)  # input:32*32*3 output:28*28*6
+        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5, stride=1,
+                               padding=0)  # input:14*14*6 output:10*10*16
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.fc1 = nn.Linear(in_features=16 * 5 * 5, out_features=120)  # input:5*5*16 output:120
+        self.fc2 = nn.Linear(in_features=120, out_features=84)  # input:120 output:84
+        self.fc3 = nn.Linear(in_features=84, out_features=10)  # inpuit:84 output:10
+
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))  # input:32*32*3 output:14*14*6
+        x = self.pool(F.relu(self.conv2(x)))  # input:14*14*6 output:5*5*16
+        x = x.view(-1, 16 * 5 * 5)  # resize: batch_size * (16*5*5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
+
+net = Net()
 
 # Define the loss function and optimizer
 criterion = nn.CrossEntropyLoss()  # Cross Entropy loss
@@ -55,8 +66,6 @@ if __name__ == '__main__':
             inputs, labels = data
 
             inputs, labels = Variable(inputs), Variable(labels)
-            if args.cuda:
-                inputs, labels = inputs.cuda(), labels.cuda()
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -69,44 +78,8 @@ if __name__ == '__main__':
             optimizer.step()
 
             running_loss += loss.data[0]
-            if i % 1000 == 999:
-                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 1000))
+            if i % 2000 == 1999:
+                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
 
     print('Finish Training')
-
-    # save the model's parameter
-    torch.save(net.)
-
-    # test the model
-    correct = 0
-    total = 0
-    for data in testloader:
-        images, labels = data
-        images = Variable(images)
-        if args.cuda:
-            images = images.cuda()
-        outputs = net(images)
-        # _, predicted = torch.max(outputs.data, 1)
-        # total += labels.size(0)
-        # correct += (predicted == labels).sum()
-
-    print("Accuracy of the network on the 10000 test images: %d %%" % (100 * correct / total))
-
-
-
-# import matplotlib.pyplot as plt
-# import numpy as np
-# def imshow(img):
-#     img = img * 0.5 + 0.5
-#     npimg = img.numpy()
-#
-#     plt.imshow(np.transpose(npimg, (1, 2, 0)))
-#
-#
-# dataiter = iter(trainloader)
-# images, labels = dataiter.next()
-#
-# plt.figure()
-# imshow(torchvision.utils.make_grid(images))
-# plt.show()
