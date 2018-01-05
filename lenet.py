@@ -41,19 +41,19 @@ class LeNet5_v2(nn.Module):
 
         """
         super(LeNet5_v2, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=6, kernel_size=5, padding=0)
-        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5)
+        self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=6, kernel_size=5, padding=0) # input:32*32*3 output:28*28*6
+        self.conv2 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5) # input:14*14*6 output:10*10*16
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(in_features=16 * 5 * 5, out_features=120)
-        self.fc2 = nn.Linear(in_features=120, out_features=84)
-        self.fc3 = nn.Linear(in_features=84, out_features=10)
+        self.fc1 = nn.Linear(in_features=16 * 5 * 5, out_features=120) # input:5*5*16 output:120
+        self.fc2 = nn.Linear(in_features=120, out_features=84) # input:120 output:84
+        self.fc3 = nn.Linear(in_features=84, out_features=10) # inpuit:84 output:10
 
     def forward(self, x):
         in_size = x.size(0)
-        x = self.relu(self.maxpool(self.conv1(x)))
-        x = self.relu(self.maxpool(self.conv2(x)))
-        x = x.view(in_size, -1)
+        x = self.relu(self.maxpool(self.conv1(x))) # input:32*32*3 output:14*14*6
+        x = self.relu(self.maxpool(self.conv2(x))) # input:14*14*6 output:5*5*16
+        x = x.view(-1, 16 * 5 * 5) # resize: batch_size * (16*5*5)
         x = self.relu(self.fc1(x))
         x = self.relu(self.fc2(x))
         x = self.fc3(x)
