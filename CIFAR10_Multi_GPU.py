@@ -26,8 +26,19 @@ MOMENTUM = 0.9
 
 if args.cuda:
     print("Cuda is available!")
-    torch.cuda.set_device(1)
 
+    if torch.cuda.device_count() > 1:
+        # Multi GPUs
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        args.multi_cuda = True
+        args.signal_cuda = False
+    else:
+        # Signal GPU
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # os.environ["CUDA_VISIBLE_DEVICES"] = GPU_ID    # selece gpu id = 1
+        args.signal_cuda = True
+        args.multi_cuda = False
+        torch.cuda.set_device(1)
 else:
     print("Cuda is not available!")
 
@@ -48,6 +59,11 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 # Define the convolution neural network
 net = build_lenet5_v2()
 
+# If you want to use Multi GPU, you need to use DataParallel firstly, and to use cuda secondly.
+# Note: You must use .cuda() after DataParallel().
+
+if args.multi_cuda:
+    net = nn.DataParallel(net)
 if args.cuda:
     net.cuda()
 
