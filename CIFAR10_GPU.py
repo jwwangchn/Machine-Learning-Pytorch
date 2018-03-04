@@ -10,6 +10,8 @@ import torch.optim as optim
 import lenet as lenet
 import argparse
 
+import matplotlib.pyplot as plt
+import random
 import os
 
 parser = argparse.ArgumentParser(description='PyTorch Example')
@@ -45,8 +47,15 @@ def data_loader():
 
     # Set classes name
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-    return trainloader, testloader, classes
+    return trainset, testset, trainloader, testloader, classes
 
+
+def show_image(trainset, testset):
+    X, y = trainset.train_data, trainset.train_labels
+    idx = random.randint(0, 19)
+    plt.imshow(X[idx])
+    plt.title('Class: %i' % y[idx])
+    plt.show()
 
 
 def train(trainloader, net, criterion, optimizer):
@@ -134,7 +143,8 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()  # Cross Entropy loss
     optimizer = optim.SGD(net.parameters(), lr=LEARN_RATE, momentum=MOMENTUM)
 
-    trainloader, testloader, classes = data_loader()
+    trainset, testset, trainloader, testloader, classes = data_loader()
+    show_image(trainset, testset)
 
     for epoch in range(EPOCHS):
 
